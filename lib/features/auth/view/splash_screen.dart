@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/prefs/app_preferences.dart';
+import '../../../core/routes/app_routes.dart';
+
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -42,14 +45,29 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _navigateToNextScreen();
   }
 
-  void _navigateToNextScreen() {
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        // TODO: Check if user has seen onboarding
-        // For now, always go to onboarding
-        context.go('/onboarding');
+  Future<void> _navigateToNextScreen() async {
+    await Future.delayed(const Duration(seconds: 4));
+
+    if (!mounted) return;
+
+    // Check if user has seen onboarding
+    final hasSeenOnboarding = await AppPreferences.hasSeenOnboarding();
+
+    if (hasSeenOnboarding) {
+      // Check if user is logged in
+      final isLoggedIn = await AppPreferences.isLoggedIn();
+
+      if (isLoggedIn) {
+        // Navigate to dashboard (or appropriate home screen)
+        context.go(AppRoutes.customer);
+      } else {
+        // Navigate to login
+        context.go(AppRoutes.login);
       }
-    });
+    } else {
+      // Show onboarding for first-time users
+      context.go(AppRoutes.onboarding);
+    }
   }
 
   @override

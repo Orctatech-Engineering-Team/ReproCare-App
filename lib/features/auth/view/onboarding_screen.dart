@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/prefs/app_preferences.dart';
 import '../../../core/routes/app_routes.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -52,23 +53,31 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.dispose();
   }
 
-  void _nextPage() {
+  Future<void> _nextPage() async {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
-      _goToLogin();
+      await _goToLogin();
     }
   }
 
-  void _goToLogin() {
-    context.go(AppRoutes.login);
+  Future<void> _goToLogin() async {
+    // Mark onboarding as seen
+    await AppPreferences.markOnboardingAsSeen();
+    if (mounted) {
+      context.go(AppRoutes.login);
+    }
   }
 
-  void _skip() {
-    context.go(AppRoutes.login);
+  Future<void> _skip() async {
+    // Mark onboarding as seen even when skipped
+    await AppPreferences.markOnboardingAsSeen();
+    if (mounted) {
+      context.go(AppRoutes.login);
+    }
   }
 
   @override
